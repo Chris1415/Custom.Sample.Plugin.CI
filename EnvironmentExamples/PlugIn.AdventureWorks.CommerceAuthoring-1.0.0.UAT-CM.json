@@ -1,0 +1,64 @@
+{
+  "$type": "Sitecore.Commerce.Core.CommerceEnvironment, Sitecore.Commerce.Core",
+  "Policies": {
+    "$type": "System.Collections.Generic.List`1[[Sitecore.Commerce.Core.Policy, Sitecore.Commerce.Core]], mscorlib",
+    "$values": [
+	  {
+		"$type": "Sitecore.Commerce.Plugin.Tax.GlobalTaxPolicy, Sitecore.Commerce.Plugin.Tax",
+		"DefaultCartTaxRate": 0.5,
+		"DefaultItemTaxRate": 0.5
+	  },
+	  {
+        "$type": "Sitecore.Commerce.Plugin.Orders.GlobalCheckoutPolicy, Sitecore.Commerce.Plugin.Orders",
+        "EnableQuickCheckout": false,
+        "EnableGuestCheckout": true,
+        "EnableTermsAndConditions": true,
+        "MinimumOrderQuantity": 1.0
+      },
+	  {
+        "$type": "Sitecore.Commerce.Plugin.Catalog.VariationPropertyPolicy, Sitecore.Commerce.Plugin.Catalog",
+        "PropertyNames": {
+          "$type": "System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib",
+          "$values": [
+            "Brand"
+          ]
+        }
+      },
+	  {
+        "$type": "Sitecore.Commerce.Plugin.Orders.KnownOrderListsPolicy, Sitecore.Commerce.Plugin.Orders",
+        "OrderDashboardLists": {
+          "$type": "System.Collections.Generic.List`1[[Sitecore.Commerce.Core.KeyValueString, Sitecore.Commerce.Core]], mscorlib",
+          "$values": [
+            {
+              "$type": "Sitecore.Commerce.Core.KeyValueString, Sitecore.Commerce.Core",
+              "Key": "Orders",
+              "Value": "list_style_bulletsTEST"
+            }
+          ]
+        },        
+        "ProblemOrders": "TESTProblemOrders",       
+      },
+	  {
+        "$type": "Sitecore.Commerce.Plugin.Fulfillment.GlobalPhysicalFulfillmentPolicy, Sitecore.Commerce.Plugin.Fulfillment",
+        "FulfillmentFees": {
+          "$type": "System.Collections.Generic.List`1[[Sitecore.Commerce.Plugin.Fulfillment.FulfillmentFee, Sitecore.Commerce.Plugin.Fulfillment]], mscorlib",
+          "$values": [
+            {
+              "$type": "Sitecore.Commerce.Plugin.Fulfillment.FulfillmentFee, Sitecore.Commerce.Plugin.Fulfillment",
+              "Fee": {
+                "$type": "Sitecore.Commerce.Core.Money, Sitecore.Commerce.Core",
+                "CurrencyCode": "USD",
+                "Amount": 150.0
+              },
+              "Name": "Ground",
+              "Policies": {
+                "$type": "System.Collections.Generic.List`1[[Sitecore.Commerce.Core.Policy, Sitecore.Commerce.Core]], mscorlib",
+                "$values": []
+              }
+            }
+          ]
+        }
+      },
+    ]
+  }
+}
