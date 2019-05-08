@@ -55,7 +55,23 @@ namespace Custom.Plugin.Sample.CI
                     environmentSpecificFile = null;
                 }
 
-             
+                bool skipFile = false;
+                foreach (string otherEnvironment in otherEnvironments)
+                {
+                    string brokenFileNameCurrentFile = $"{fileName.Substring(0, fileName.LastIndexOf('.'))}";
+                    brokenFileNameCurrentFile = $"{brokenFileNameCurrentFile.Substring(0, brokenFileNameCurrentFile.LastIndexOf('.'))}";
+                    string brokenFileNameFromList = $"{otherEnvironment.Substring(0, otherEnvironment.LastIndexOf('.'))}";
+                    if (brokenFileNameFromList.Equals(brokenFileNameCurrentFile))
+                    {
+                        skipFile = true;
+                    }
+                }
+
+                if (skipFile)
+                {
+                    continue;
+                }
+
                 JObject jobject = JObject.Parse(ReplaceWithEnvironmentSpecificFile ? environmentSpecificFile ?? file : file);
 
                 // Json Validation if any property is present
