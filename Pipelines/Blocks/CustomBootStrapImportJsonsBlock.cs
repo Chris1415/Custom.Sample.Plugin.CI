@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Sitecore.Commerce.Core;
@@ -10,7 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Custom.Plugin.Sample.CI
+namespace Plugin.Alnatura.CI
 {
     [PipelineDisplayName("Core.block.CustomBootStrapImportJsonsBlock")]
     public class CustomBootStrapImportJsonsBlock : PipelineBlock<string, string, CommercePipelineExecutionContext>
@@ -19,7 +19,7 @@ namespace Custom.Plugin.Sample.CI
         private readonly ImportEnvironmentCommand _importEnvironmentCommand;
         private readonly ImportPolicySetCommand _importPolicySetCommand;
         private readonly IHostingEnvironment _hostingEnvironment;
-        private readonly bool ReplaceWithEnvironmentSpecificFile = false;
+        private readonly bool ReplaceWithEnvironmentSpecificFile = true;
 
         public CustomBootStrapImportJsonsBlock(NodeContext nodeContext,
             ImportEnvironmentCommand importEnvironmentCommand,
@@ -72,12 +72,13 @@ namespace Custom.Plugin.Sample.CI
                     continue;
                 }
 
-                JObject jobject = JObject.Parse(ReplaceWithEnvironmentSpecificFile ? environmentSpecificFile ?? file : file);
+                var targetFileToUse = ReplaceWithEnvironmentSpecificFile ? environmentSpecificFile ?? file : file;
+                JObject jobject = JObject.Parse(targetFileToUse);
 
                 // Json Validation if any property is present
                 if (!jobject.HasValues || !jobject.Properties().Any(p => p.Name.Equals("$type", StringComparison.OrdinalIgnoreCase)))
                 {
-                    context.Logger.LogError(importJsonsBlock.Name + ".Invalid json file '" + file + "'.", Array.Empty<object>());
+                    context.Logger.LogError(importJsonsBlock.Name + ".Invalid json file '" + targetFileToUse + "'.", Array.Empty<object>());
                     break;
                 }
 
@@ -85,7 +86,7 @@ namespace Custom.Plugin.Sample.CI
                 // Json Validation if type property is present
                 if (string.IsNullOrEmpty(jproperty?.Value?.ToString()))
                 {
-                    context.Logger.LogError(importJsonsBlock.Name + ".Invalid type in json file '" + file + "'.", Array.Empty<object>());
+                    context.Logger.LogError(importJsonsBlock.Name + ".Invalid type in json file '" + targetFileToUse + "'.", Array.Empty<object>());
                     break;
                 }
 
@@ -95,21 +96,17 @@ namespace Custom.Plugin.Sample.CI
                     JObject environmentspecificJObject = JObject.Parse(environmentSpecificFile);
                     JProperty specificProperty = environmentspecificJObject.Properties().FirstOrDefault();
                     IterateJsonProperties(ref jobject, specificProperty as JToken);
-                    //jobject.Merge(environmentspecificJObject);
-                    //string newFileName = fileName.Substring(fileName.LastIndexOf('\\') + 1, fileName.LastIndexOf('.') - fileName.LastIndexOf('\\') -1 );
-                    //File.WriteAllText($"/{newFileName}_Overwritten.json", jobject.ToString());
-                    //File.WriteAllText($"/{newFileName}_Orignial.json", file);
-                    file = jobject.ToString();
+                    targetFileToUse = jobject.ToString();
                 }
 
                 // Determination if file is environment 
                 if (jproperty.Value.ToString().Contains(typeof(CommerceEnvironment).FullName))
                 {
-                    context.Logger.LogInformation(importJsonsBlock.Name + ".ImportEnvironmentFromFile: File=" + file, Array.Empty<object>());
+                    context.Logger.LogInformation(importJsonsBlock.Name + ".ImportEnvironmentFromFile: File=" + targetFileToUse, Array.Empty<object>());
                     try
                     {
-                        CommerceEnvironment commerceEnvironment = await importJsonsBlock._importEnvironmentCommand.Process(context.CommerceContext, file);
-                        context.Logger.LogInformation(importJsonsBlock.Name + ".EnvironmentImported: EnvironmentId=" + commerceEnvironment.Id + "|File=" + file, Array.Empty<object>());
+                        CommerceEnvironment commerceEnvironment = await importJsonsBlock._importEnvironmentCommand.Process(context.CommerceContext, targetFileToUse);
+                        context.Logger.LogInformation(importJsonsBlock.Name + ".EnvironmentImported: EnvironmentId=" + commerceEnvironment.Id + "|File=" + targetFileToUse, Array.Empty<object>());
                     }
                     catch (Exception ex)
                     {
@@ -119,11 +116,11 @@ namespace Custom.Plugin.Sample.CI
                 // Or policy-set
                 else if (jproperty.Value.ToString().Contains(typeof(PolicySet).FullName))
                 {
-                    context.Logger.LogInformation(importJsonsBlock.Name + ".ImportPolicySetFromFile: File=" + file, Array.Empty<object>());
+                    context.Logger.LogInformation(importJsonsBlock.Name + ".ImportPolicySetFromFile: File=" + targetFileToUse, Array.Empty<object>());
                     try
                     {
-                        PolicySet policySet = await importJsonsBlock._importPolicySetCommand.Process(context.CommerceContext, file);
-                        context.Logger.LogInformation(importJsonsBlock.Name + ".PolicySetImported: PolicySetId=" + policySet.Id + "|File=" + file, Array.Empty<object>());
+                        PolicySet policySet = await importJsonsBlock._importPolicySetCommand.Process(context.CommerceContext, targetFileToUse);
+                        context.Logger.LogInformation(importJsonsBlock.Name + ".PolicySetImported: PolicySetId=" + policySet.Id + "|File=" + targetFileToUse, Array.Empty<object>());
                     }
                     catch (Exception ex)
                     {
